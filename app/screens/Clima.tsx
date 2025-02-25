@@ -25,7 +25,6 @@ interface DailyWeatherData {
 
 const API_KEY = '8dd6c34d6e9e4252b69230603252402';
 
-// Traducciones para las condiciones climáticas
 const weatherTranslations: { [key: string]: string } = {
   'Sunny': 'Soleado',
   'Clear': 'Despejado',
@@ -67,7 +66,6 @@ const App = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Paso 1: Solicitar permiso de ubicación
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setError('Permiso de ubicación denegado');
@@ -75,11 +73,9 @@ const App = () => {
           return;
         }
 
-        // Paso 2: Obtener coordenadas
         let location = await Location.getCurrentPositionAsync({});
         const { latitude: lat, longitude: lon } = location.coords;
 
-        // Paso 3: Consultar API del clima en español
         const response = await fetch(
           `http://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=5&aqi=no&alerts=no&lang=es`
         );
@@ -88,28 +84,24 @@ const App = () => {
         
         const data = await response.json();
         
-        // Paso 4: Procesar datos
         const today = new Date();
         const processedData: DailyWeatherData[] = data.forecast.forecastday
           .map((item: WeatherData, index: number) => {
-            const dateObj = new Date(item.date + 'T00:00:00'); // Fuerza hora local
+            const dateObj = new Date(item.date + 'T00:00:00'); 
             const formattedDate = new Intl.DateTimeFormat('es-ES', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric'
             }).format(dateObj);
             
-            // Determinar si es hoy
             const isToday = dateObj.toDateString() === today.toDateString();
             
-            // Obtener nombre del día capitalizado
             let dayName = new Intl.DateTimeFormat('es-ES', { 
               weekday: 'long',
-              timeZone: 'UTC' // Asegura consistencia con la fecha de la API
+              timeZone: 'UTC' 
             }).format(dateObj);
             dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
 
-            // Traducir condición climática si es necesario
             const condition = weatherTranslations[item.day.condition.text] || item.day.condition.text;
 
             return {
